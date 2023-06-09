@@ -13,9 +13,9 @@ export class AuthDto {
   @IsNotEmpty()
   fullName: string;
 
-  @IsString()
+  @IsNumber()
   @IsNotEmpty()
-  pin: string;
+  pin: number;
 
   @IsNumber()
   @IsNotEmpty()
