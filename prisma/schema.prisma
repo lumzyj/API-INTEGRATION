@@ -22,6 +22,7 @@ model User {
   pin          Int
 
   accounts     Account[]
+  transactions Transaction[]
 
   @@map("users")
 }
@@ -34,6 +35,7 @@ model Account {
   accountNumber  String
   accountType    String
   balance        Float
+  isLocked       Boolean
   userId         Int
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -50,4 +52,5 @@ model Transaction {
 
   @@map("transactions")
 }
+
 
