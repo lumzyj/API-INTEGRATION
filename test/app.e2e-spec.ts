@@ -1,9 +1,9 @@
-import { 
-  INestApplication, 
-  ValidationPipe } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
-import * as pactum from 'pactum'; 
+
+import * as request from 'supertest';
 import { PrismaService } from '../src/prisma/prisma.service';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import * as pactum from 'pactum';
 import { AppModule } from '../src/app.module';
 import { AuthDto } from 'src/auth/dto';
 import { EditUserDto } from 'src/user/dto';
@@ -11,30 +11,35 @@ import { EditUserDto } from 'src/user/dto';
 
 describe('App e2e', () => {
   let app: INestApplication;
-  let prisma: PrismaService
+  let prisma: PrismaService;
+
   beforeAll(async () => {
-    const moduleRef = 
-      await Test.createTestingModule({
+    const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 
-    const app = moduleRef.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe( {
-      whitelist: true,
-    }) 
+    app = moduleRef.createNestApplication();
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+      }),
     );
-    await app.init()
-    await app.listen(3344);
+    await app.init();
+    await app.listen(5900);
 
-    prisma = app.get(PrismaService)
-    // await prisma.cleanDb()
-    pactum.request.setBaseUrl('http://localhost:3344')
+    prisma = app.get(PrismaService);
+    pactum.request.setBaseUrl('http://localhost:5900');
   });
 
-  afterAll(() => {
-    // app.close();
-  })
- 
+  afterAll(async () => {
+    await prisma.$disconnect();
+    await app.close();
+  });
+
+  beforeEach(async () => {
+    await prisma.user.deleteMany();
+  });
+
   describe('Auth', () => {
     const dto: AuthDto = {
       email: 'lumina@gmail.com',
@@ -42,78 +47,64 @@ describe('App e2e', () => {
       fullName: 'olumide',
       account: 1234567890,
       pin: 3023,
-    }
+    };
 
     describe('Signup', () => {
-      it('should throw if password empty', () =>{
-        return pactum
-        .spec()
-        .post(
-          '/auth/signup',
-        ).withBody({
+      it('should throw if password is empty', () => {
+        return pactum.spec().post('/auth/signup').withBody({
           email: dto.email,
           pin: dto.pin,
-          fullNmae: dto.fullName
-        })
-        .expectStatus(400)
-      })
-      it('should throw if email empty', () =>{
-        return pactum
-        .spec()
-        .post(
-          '/auth/signup',
-        ).withBody({
+          fullName: dto.fullName,
+        }).expectStatus(400);
+      });
+
+      it('should throw if email is empty', () => {
+        return pactum.spec().post('/auth/signup').withBody({
           password: dto.password,
           pin: dto.pin,
-          fullNmae: dto.fullName
-        })
-        .expectStatus(400)
-      })
+          fullName: dto.fullName,
+        }).expectStatus(400);
+      });
+
       it('should signup', () => {
-        return pactum
-        .spec()
-        .post(
-          '/auth/signup',
-        ).withBody(dto)
-        .expectStatus(201)
-      })
+        return pactum.spec().post('/auth/signup').withBody(dto).expectStatus(201);
+      });
     });
 
     describe('Signin', () => {
-      // let access_token: string
-      it('should throw if password empty', () =>{
-        return pactum
-        .spec()
-        .post(
-          '/auth/signin',
-        ).withBody({
+      it('should throw if password is empty', () => {
+        return pactum.spec().post('/auth/signin').withBody({
           email: dto.email,
           pin: dto.pin,
-          fullNmae: dto.fullName
-        })
-        .expectStatus(400)
-      })
-      it('should throw if email empty', () =>{
-        return pactum
-        .spec()
-        .post(
-          '/auth/signin',
-        ).withBody({
+          fullName: dto.fullName,
+        }).expectStatus(400);
+      });
+
+      it('should throw if email is empty', () => {
+        return pactum.spec().post('/auth/signin').withBody({
           password: dto.password,
           pin: dto.pin,
-          fullNmae: dto.fullName
-        })
-        .expectStatus(400)
-      })
+          fullName: dto.fullName,
+        }).expectStatus(400);
+      });
+
       it('should signin', () => {
         return pactum
-        .spec()
-        .post(
-          '/auth/signin',
-        ).withBody(dto)
-        .expectStatus(201)
-        .stores('userAt', 'access_token')
-      })
+          .spec()
+          .post('/auth/signin')
+          .withBody(dto)
+          .expectStatus(201)
+          .stores('userAt', 'access_token');
+      });
+    });
+
+    describe('Signout', () => {
+      it('should signout', () => {
+        return pactum
+          .spec()
+          .post('/auth/signout')
+          .expectStatus(200);
+      });
     });
   });
 

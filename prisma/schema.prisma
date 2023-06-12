@@ -11,42 +11,43 @@ datasource db {
 }
 
 model User {
-  id Int @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           Int          @id @default(autoincrement())
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
-  email String @unique
-  hash String
+  email        String       @unique
+  hash         String
 
-  fullName String
-  account Int
-  pin Int
+  fullName     String
+  pin          Int
 
-  Accounts Account[]
-  Transactions Transaction[]
+  accounts     Account[]
 
   @@map("users")
 }
 
 model Account {
-  id Int @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             Int          @id @default(autoincrement())
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
-  userId Int 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountNumber  String
+  accountType    String
+  balance        Float
+  userId         Int
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("Accounts")
+  @@map("accounts")
 }
 
 model Transaction {
-  id Int @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             Int          @id @default(autoincrement())
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
+  userId         Int
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  userId Int 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("Transactions")
+  @@map("transactions")
 }
+
