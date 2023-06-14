@@ -28,6 +28,8 @@ export class AuthService {
                 account: dto.account,
                 fullName: dto.fullName,
                 
+                
+                
             },
         });    
         return this.signToken(user.id, user.email);
