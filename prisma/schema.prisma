@@ -34,9 +34,12 @@ model Account {
 
   accountNumber  Int
   balance        Float
-  fullName       String
+  accountName       String
+
+
   userId         Int
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   Transactions   Transaction[]
 
   @@map("accounts")
@@ -49,9 +52,15 @@ model Transaction {
 
   AccountId      Int 
   account        Account      @relation(fields: [AccountId], references: [id], onDelete: Cascade)
+  amount         Float
+  reciever       Int
+  sender         String
+  type           String
+  status         String
 
 
   @@map("transactions")
 }
+
 
 

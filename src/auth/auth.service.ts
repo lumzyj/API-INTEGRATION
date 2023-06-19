@@ -25,7 +25,6 @@ export class AuthService {
                 email: dto.email,
                 hash,
                 pin: dto.pin,
-                account: dto.account,
                 fullName: dto.fullName,
                 
                 

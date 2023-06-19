@@ -13,7 +13,8 @@ ALTER TABLE "Accounts" DROP CONSTRAINT "Accounts_userId_fkey";
 ALTER TABLE "Transactions" DROP CONSTRAINT "Transactions_userId_fkey";
 
 -- AlterTable
-ALTER TABLE "users" DROP COLUMN "account";
+ALTER TABLE "users" DROP COLUMN "account",
+ALTER COLUMN "fullName" DROP NOT NULL;
 
 -- DropTable
 DROP TABLE "Accounts";
@@ -26,10 +27,9 @@ CREATE TABLE "accounts" (
     "id" SERIAL NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "accountNumber" TEXT NOT NULL,
-    "accountType" TEXT NOT NULL,
+    "accountNumber" INTEGER NOT NULL,
     "balance" DOUBLE PRECISION NOT NULL,
-    "isLocked" BOOLEAN NOT NULL,
+    "accountName" TEXT NOT NULL,
     "userId" INTEGER NOT NULL,
 
     CONSTRAINT "accounts_pkey" PRIMARY KEY ("id")
@@ -40,7 +40,12 @@ CREATE TABLE "transactions" (
     "id" SERIAL NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "userId" INTEGER NOT NULL,
+    "AccountId" INTEGER NOT NULL,
+    "amount" DOUBLE PRECISION NOT NULL,
+    "reciever" INTEGER NOT NULL,
+    "sender" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "status" TEXT NOT NULL,
 
     CONSTRAINT "transactions_pkey" PRIMARY KEY ("id")
 );
@@ -49,4 +54,4 @@ CREATE TABLE "transactions" (
 ALTER TABLE "accounts" ADD CONSTRAINT "accounts_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "transactions" ADD CONSTRAINT "transactions_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "transactions" ADD CONSTRAINT "transactions_AccountId_fkey" FOREIGN KEY ("AccountId") REFERENCES "accounts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
