@@ -1,12 +1,14 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateAccountDto, EditAccountDto } from './dto';
 
 @Injectable()
-export class Accountservice {
+export class AccountService {
   constructor(private prisma: PrismaService) {}
 
-  async createAccount(userId: number, dto: CreateAccountDto) {
+  async createAccount(
+    userId: number, 
+    dto: CreateAccountDto) {
     const account = await this.prisma.account.create({
       data: {
         userId,
@@ -16,7 +18,7 @@ export class Accountservice {
     return account;
   }
 
-  getAccounts(userId: number) {
+  async getAccounts(userId: number) {
     return this.prisma.account.findMany({
       where: {
         userId,
@@ -24,35 +26,98 @@ export class Accountservice {
     });
   }
 
-  getAccountById(userId: number, accountId: number) {
-    return this.prisma.account.findFirst({
+  async getAccountById(userId: number, accountId: number) {
+    const account = await this.prisma.account.findFirst({
       where: {
         id: accountId,
         userId,
       },
     });
+
+    if (!account) {
+      throw new NotFoundException('Account not found');
+    }
+
+    return account;
   }
 
-  getAccountByAccountNumber(accountNumber: number) {
-    return this.prisma.account.findUnique({
+  async getAccountByAccountNumber(accountNumber: number) {
+    const account = await this.prisma.account.findUnique({
       where: {
         id: accountNumber,
       },
     });
+
+    if (!account) {
+      throw new NotFoundException('Account not found');
+    }
+
+    return account;
+  }
+
+  async sendMoney(
+    accountNumber: number,
+    receiverAccountId: number,
+    amount: number,
+    dto: EditAccountDto,
+  ) {
+    const senderAccount = await this.getAccountByAccountNumber(accountNumber);
+    const receiverAccount = await this.getAccountById(senderAccount.userId, receiverAccountId);
+
+    if (senderAccount.balance < amount) {
+      throw new ForbiddenException('Insufficient balance');
+    }
+
+    const updatedSenderAccount = await this.prisma.account.update({
+      where: {
+        id: senderAccount.id,
+      },
+      data: {
+        balance: senderAccount.balance - amount,
+      },
+    });
+
+    const updatedReceiverAccount = await this.prisma.account.update({
+      where: {
+        id: receiverAccountId,
+      },
+      data: {
+        balance: receiverAccount.balance + amount,
+      },
+    });
+
+    if (dto) {
+      await this.prisma.account.update({
+        where: {
+          id: senderAccount.id,
+        },
+        data: {
+          ...dto,
+        },
+      });
+
+      await this.prisma.account.update({
+        where: {
+          id: receiverAccountId,
+        },
+        data: {
+          ...dto,
+        },
+      });
+    }
+
+    return {
+      senderAccount: updatedSenderAccount,
+      receiverAccount: updatedReceiverAccount,
+    };
   }
 
   async editAccountById(userId: number, accountId: number, dto: EditAccountDto) {
-    const account = await this.prisma.account.findUnique({
-      where: {
-        id: accountId,
-      },
-    });
-    if (!account || account.userId !== userId) {
-      throw new ForbiddenException('Access to resources denied');
-    }
+    const account = await this.getAccountById(userId, accountId);
+
     return this.prisma.account.update({
       where: {
-        id: accountId,
+        id: account.id,
       },
       data: {
         ...dto,
@@ -61,18 +126,13 @@ export class Accountservice {
   }
 
   async deleteAccountById(userId: number, accountId: number) {
-    const account = await this.prisma.account.findUnique({
-      where: {
-        id: accountId,
-      },
-    });
-    if (!account || account.userId !== userId) {
-      throw new ForbiddenException('Access to resources denied');
-    }
+    const account = await this.getAccountById(userId, accountId);
+
     await this.prisma.account.delete({
       where: {
-        id: accountId,
+        id: account.id,
       },
     });
   }
 }
+

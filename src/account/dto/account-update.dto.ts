@@ -1,6 +1,15 @@
+import { IsNumber, IsOptional, IsString } from 'class-validator';
+
 export class AccountUpdateDto {
-    fullName?: string;
-    account_Number?: number;
-    pin?: number;
-  }
-  
+  @IsString()
+  @IsOptional()
+  fullName?: string;
+
+  @IsNumber()
+  @IsOptional()
+  account_Number?: number;
+
+  @IsNumber()
+  @IsOptional()
+  pin?: number;
+}

@@ -1,23 +1,20 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, UseGuards } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
 import { SendTransactionDto } from './dto/send-transaction.dto';
 import { GetUser } from 'src/auth/decorator';
-import { TransactionFilterDto } from './dto/transaction-filter.dto';
+
 
 @Controller('transaction')
 export class TransactionController {
   constructor(private transactionService: TransactionService) {}
 
   @Get()
-  getTransactions(
-    @GetUser('id') accountId: number,
-    @Query() filterDto: TransactionFilterDto,
-  ) {
-    return this.transactionService.getTransactions(accountId, filterDto);
+  getTransactions(@GetUser('id') accountId: number) {
+    return this.transactionService.getTransactions(accountId);
   }
 
   @Get(':id')
-  getTransactionsById(
+  getTransactionById(
     @GetUser('id') accountId: number,
     @Param('id', ParseIntPipe) transactionId: number,
   ) {
@@ -50,3 +47,4 @@ export class TransactionController {
     return this.transactionService.deleteTransactionById(accountId, transactionId);
   }
 }
+

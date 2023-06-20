@@ -3,11 +3,11 @@ import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 export class CreateAccountDto {
   @IsString()
   @IsNotEmpty()
-  accountName: string;
+  AccountName: string;
 
   @IsNumber()
   @IsNotEmpty()
-  accountNumber: number;
+  account_Number: number;
 
   @IsNumber()
   @IsNotEmpty()
@@ -17,3 +17,4 @@ export class CreateAccountDto {
   @IsNotEmpty()
   balance: number;
 }
+

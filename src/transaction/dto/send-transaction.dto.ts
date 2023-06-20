@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class SendTransactionDto {
   @IsNumber()
@@ -9,15 +9,20 @@ export class SendTransactionDto {
   @IsNotEmpty()
   receiver: number;
 
+  @IsNumber()
+  @IsNotEmpty()
+  balance: number;
+
   @IsString()
   @IsNotEmpty()
   sender: string;
 
   @IsString()
   @IsNotEmpty()
-  type: string;
+  status: string;
 
   @IsString()
   @IsNotEmpty()
-  status: string;
+  type_of_transaction: string;
 }
+
