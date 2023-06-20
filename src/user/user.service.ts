@@ -7,7 +7,7 @@ export class UserService {
     constructor(private prisma: PrismaService) {}
 
     async editUser(
-        userId: number, 
+        userId: number,
         dto: EditUserDto
         ) {
             const user = await this.prisma.user.update({
@@ -37,4 +37,5 @@ export class UserService {
                     },
                 });
             }
+        
 }

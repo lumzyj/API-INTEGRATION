@@ -1,31 +1,20 @@
-/*
-  Warnings:
-
-  - You are about to drop the column `pin` on the `users` table. All the data in the column will be lost.
-  - You are about to drop the `accounts` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `transactions` table. If the table is not empty, all the data it contains will be lost.
-
-*/
 -- CreateEnum
 CREATE TYPE "TypeOfTransaction" AS ENUM ('Deposit', 'Withdraw', 'Send');
 
 -- CreateEnum
 CREATE TYPE "Status" AS ENUM ('pending', 'successful', 'failed');
 
--- DropForeignKey
-ALTER TABLE "accounts" DROP CONSTRAINT "accounts_userId_fkey";
+-- CreateTable
+CREATE TABLE "users" (
+    "id" SERIAL NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "email" TEXT NOT NULL,
+    "hash" TEXT NOT NULL,
+    "fullName" TEXT,
 
--- DropForeignKey
-ALTER TABLE "transactions" DROP CONSTRAINT "transactions_AccountId_fkey";
-
--- AlterTable
-ALTER TABLE "users" DROP COLUMN "pin";
-
--- DropTable
-DROP TABLE "accounts";
-
--- DropTable
-DROP TABLE "transactions";
+    CONSTRAINT "users_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "Accounts" (
@@ -56,6 +45,9 @@ CREATE TABLE "Transactions" (
 
     CONSTRAINT "Transactions_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- AddForeignKey
 ALTER TABLE "Accounts" ADD CONSTRAINT "Accounts_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

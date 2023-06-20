@@ -1,102 +1,122 @@
-import { ForbiddenException, Injectable } from "@nestjs/common";
+import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { User, Transaction, Account, Prisma } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuthDto } from "./dto";
-import * as argon from 'argon2'; 
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import * as argon from 'argon2';
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
+import { Session } from "express-session";
+
 
 @Injectable()
-export class AuthService {
+export class AuthService{
     constructor(
         private prisma: PrismaService, 
         private jwt: JwtService,
-        private config: ConfigService,
-        ){}
+        private config: ConfigService
+        ) {}
 
     async signup(dto: AuthDto) {
-        //generate the password hash
-        const hash = await argon.hash(dto.password); 
+       
+        const hash = await argon.hash(dto.password)
 
-        //save the new user in the database
-        try{
-        const user = await this.prisma.user.create ({
-            data: {
-                email: dto.email,
-                hash,
-                // pin: dto.pin,
-                fullName: dto.fullName,
-                
-                
-                
-            },
-        });    
-        return this.signToken(user.id, user.email);
-        } catch(error){
-            if (
-                error instanceof
-                PrismaClientKnownRequestError
-                 ) {
-                if (error.code === "P2002"){
+       
+        try {
+            const user = await this.prisma.user.create({
+                data: {
+                    email: dto.email,
+                    hash,
+                },
+            });
+            return this.signToken(user.id, user.email);
+        } catch(error) {
+            if (error instanceof PrismaClientKnownRequestError) {
+                if (error.code === 'P2002') {
                     throw new ForbiddenException(
                         'Credentials taken',
                     );
                 }
             }
             throw error;
-            
         }
-
     }
 
-   async signin(dto: AuthDto) {
-        // Find user by email
-        const user = 
-        await this.prisma.user.findUnique({
-            where:{
+
+    async login(dto: AuthDto) {
+
+        // find user by email
+        const user =  await this.prisma.user.findUnique({
+            where: {
                 email: dto.email,
             },
-        })
-        // IF user does not exist throw exception
+        });
+        // if user does not exist throw exception
         if (!user)
-         throw new ForbiddenException(
-            'Credentials incorrect',
+            throw new ForbiddenException(
+                'Credientials incorrect',
             );
-             
-
-        // Compare Password
-        const pwMatches = await argon.verify(
-            user.hash, dto.password,
-            );
-        // If passsword incorrect throw exception
-        if(!pwMatches) 
-        throw new ForbiddenException(
-            'Credentials incorrect',
+        // compare password
+        const pwmaches = await argon.verify(
+            user.hash,
+            dto.password,
         );
+        // if password incorrect throw exception
+        if (!pwmaches)
+            throw new ForbiddenException(
+                'Credientials incorrect'
+            );
         return this.signToken(user.id, user.email);
-       
     }
-     async signToken( 
-        userId: number, 
-        email:string, 
-    ) :Promise<{access_token: string}> {
-        const payload = {
-            sub : userId,
-            email,
-        };
-        const secret = this.config.get('JWT_SECRET');
 
-        const token = await this.jwt.signAsync(
-            payload,
-            {
+    async signToken(
+        userId: number, 
+        email: string
+        ): Promise<{access_token: string}> {
+            const payload = {
+                sub: userId,
+                email
+            };
+
+            const secret = this.config.get('JWT_SECRET')
+
+            const token = await this.jwt.signAsync(
+                payload, 
+                {
                 expiresIn: '15m',
                 secret: secret,
-            },
-        )
-        return{
-            access_token: token,
+            },)
+            return {
+                access_token: token,
+            }
         }
-
-    }
+       
+        
+        
+        async logout(userId: number, session: Session) {
+            try {
+              session.destroy((error) => {
+                if (error) {
+                  throw new Error('Session could not be destroyed');
+                }
+              });
+          
+              await this.prisma.user.update({
+                where: {
+                  id: userId,
+                  
+                },
+                data: {
+                  signOut: true,
+                } as Prisma.UserUpdateInput
+              });
+          
+              return {
+                message: 'Logout successful',
+              };
+          
+            } catch (error) {
+              throw new NotFoundException('Logout failed');
+            }
+          }
 }
-

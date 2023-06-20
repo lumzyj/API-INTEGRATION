@@ -4,6 +4,8 @@ import {
     Delete, 
     Get, 
     Patch, 
+    Req,
+    Post, 
     UseGuards } from '@nestjs/common';
 import { GetUser } from '../auth/decorator'
 import { JwtGuard } from '../auth/guard'
@@ -21,7 +23,17 @@ export class UserController {
             return user;
         } 
 
-    @Patch()
+    @Post('logout')
+        async logout(@GetUser() user: User, @Req() req: any) {
+
+          req.session.destroy();
+          
+          return {
+            message: 'Logout successful',
+          };
+        }
+
+    @Patch('update')
     editUser(
         @GetUser('id') 
         userId: number, 
@@ -30,7 +42,7 @@ export class UserController {
             return this.userService.editUser(userId, dto);
         } 
 
-    @Delete()
+    @Delete('remove')
     deleteUser(
         @GetUser('id')
         userId: number,
