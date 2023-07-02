@@ -44,25 +44,18 @@ describe('App e2e', () => {
     const dto: AuthDto = {
       email: 'lumina@gmail.com',
       password: 'Moyosore123',
-      fullName: 'olumide',
-      account: 1234567890,
-      pin: 3023,
     };
 
     describe('Signup', () => {
       it('should throw if password is empty', () => {
         return pactum.spec().post('/auth/signup').withBody({
           email: dto.email,
-          pin: dto.pin,
-          fullName: dto.fullName,
         }).expectStatus(400);
       });
 
       it('should throw if email is empty', () => {
         return pactum.spec().post('/auth/signup').withBody({
           password: dto.password,
-          pin: dto.pin,
-          fullName: dto.fullName,
         }).expectStatus(400);
       });
 
@@ -75,16 +68,12 @@ describe('App e2e', () => {
       it('should throw if password is empty', () => {
         return pactum.spec().post('/auth/signin').withBody({
           email: dto.email,
-          pin: dto.pin,
-          fullName: dto.fullName,
         }).expectStatus(400);
       });
 
       it('should throw if email is empty', () => {
         return pactum.spec().post('/auth/signin').withBody({
           password: dto.password,
-          pin: dto.pin,
-          fullName: dto.fullName,
         }).expectStatus(400);
       });
 
@@ -125,10 +114,7 @@ describe('App e2e', () => {
     describe('Edit user', () => {
       it('should edit users', () => {
         const dto: EditUserDto = {
-          fullName: "Boluwatife",
           email: "lumzkid@gmail.com",
-          pin: 1965,
-          account: 2150291538,
         }
         return pactum
         .spec()
@@ -145,10 +131,7 @@ describe('App e2e', () => {
     describe('Delete user', () => {
       it('should delete user', () => {
         const dto: EditUserDto = {
-          fullName: "Boluwatife",
           email: "lumzkid@gmail.com",
-          pin: 1965,
-          account: 2150291538,
         }
         return pactum
         .spec()

@@ -17,3 +17,4 @@ export class EditAccountDto {
     @IsOptional()
     balance?: number
 }
+

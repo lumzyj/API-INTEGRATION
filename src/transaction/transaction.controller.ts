@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
 import { SendTransactionDto } from './dto/send-transaction.dto';
 import { GetUser } from 'src/auth/decorator';
@@ -6,45 +6,62 @@ import { GetUser } from 'src/auth/decorator';
 
 @Controller('transaction')
 export class TransactionController {
-  constructor(private transactionService: TransactionService) {}
+    constructor(
+        private TransactionService: TransactionService
+    ) {}
 
-  @Get()
-  getTransactions(@GetUser('id') accountId: number) {
-    return this.transactionService.getTransactions(accountId);
-  }
+    @Get(':accountId/transactions')
+    getTransactionsByAccountId(
+      @Param('accountId', ParseIntPipe) accountId: number,
+    ) {
+      return this.TransactionService.getTransactionsByAccountId(accountId);
+    }
 
-  @Get(':id')
-  getTransactionById(
-    @GetUser('id') accountId: number,
-    @Param('id', ParseIntPipe) transactionId: number,
-  ) {
-    return this.transactionService.getTransactionById(accountId, transactionId);
-  }
+// @Get(':id')
+// getTransactionsById(
+//     @Param('id', ParseIntPipe)  AccountId: number,
+//     @Param('id', ParseIntPipe) transactionId: number,
+// ){
+//     return this.TransactionService.getTransactionById(
+//         AccountId,
+//         transactionId,
+//     );
+// }
+@Post(':AccountId') // Use 'accountId' instead of 'id'
+createTransaction(
+  @GetUser('id') userId: number, // Assuming you are using 'id' as the user ID decorator
+  @Param('accountId', ParseIntPipe) AccountId: number, // Use 'accountId' instead of 'id' and add ParseIntPipe to convert it to a number
+  @Body() dto: SendTransactionDto,
+) {
+  return this.TransactionService.createTransaction(
+    AccountId, // Pass the 'accountId' to the service method
+    dto,
+  );
+}
 
-  @Post()
-  createTransaction(
-    @GetUser('id') accountId: number,
-    @Body() dto: SendTransactionDto,
-  ) {
-    return this.transactionService.createTransaction(accountId, dto);
-  }
+// @Patch(':id')
+// editTransactionById(
+//     @GetUser('id') userId: number,
+//     @Param('id', ParseIntPipe) AccountId: number,
+//     @Body() dto: SendTransactionDto,
+//     ) {
+//         return this.TransactionService.editTransactionById(
+//             userId,
+//             AccountId,
+//             dto,
+//         );
+//     }
 
-  @Patch(':id')
-  editTransactionById(
-    @GetUser('id') accountId: number,
-    @Param('id', ParseIntPipe) transactionId: number,
-    @Body() dto: SendTransactionDto,
-  ) {
-    return this.transactionService.editTransactionById(accountId, transactionId, dto);
-  }
-
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @Delete(':id')
-  deleteTransactionById(
-    @GetUser('id') accountId: number,
-    @Param('id', ParseIntPipe) transactionId: number,
-  ) {
-    return this.transactionService.deleteTransactionById(accountId, transactionId);
-  }
+// @HttpCode(HttpStatus.NO_CONTENT)
+// @Delete(':id')
+// deleteAccountById(
+//     @GetUser('id') userId: number,
+//     @Param('id', ParseIntPipe) AccountId: number,
+// ){
+//     return this.TransactionService.deleteTransactionById(
+//         userId, 
+//         AccountId
+//     );
+// }
 }
 

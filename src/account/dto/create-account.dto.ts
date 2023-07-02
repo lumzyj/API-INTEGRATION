@@ -17,4 +17,3 @@ export class CreateAccountDto {
     @IsNotEmpty()
     balance: number
 }
-
